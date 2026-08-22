@@ -1,15 +1,18 @@
 #!/usr/bin/env bash
 
-POMODORO_STATE_FILE="/tmp/microbreak_pomodoro.state"
-POMODORO_CYCLE_FILE="/tmp/microbreak_pomodoro.cycle"
-POMODORO_PID_FILE="/tmp/microbreak_pomodoro.pid"
-POMODORO_PROGRESS_FILE="/tmp/microbreak_pomodoro.progress"
+source "$(dirname "${BASH_SOURCE[0]}")/../core/paths.sh"
+
 
 source "$(dirname "${BASH_SOURCE[0]}")/voice.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/statistics.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/notification.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../core/session_tracker.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../core/config_loader.sh"
+load_config
 
 pomodoro_start() {
+    trap pomodoro_stop INT TERM
+
     echo "active" > "$POMODORO_STATE_FILE"
     echo "0" > "$POMODORO_CYCLE_FILE"
 
@@ -21,6 +24,9 @@ pomodoro_start() {
 
 pomodoro_run() {
     local cycle=1
+
+    export POMODORO_CURRENT_CYCLE="$cycle"
+    export POMODORO_COMPLETED=0
 
     while [ "$cycle" -le "$pomodoro_cycles" ]; do
         echo "Work cycle: $cycle"
@@ -38,6 +44,9 @@ pomodoro_run() {
         echo "$cycle" > "$POMODORO_CYCLE_FILE"
 
         pomodoro_session_progress_bar "$cycle" "$pomodoro_cycles"
+
+        POMODORO_COMPLETED="$cycle"
+        export POMODORO_COMPLETED
 
         cycle=$((cycle + 1))
     done
@@ -63,8 +72,10 @@ pomodoro_stop() {
 
     rm -f "$POMODORO_STATE_FILE"
     rm -f "$POMODORO_CYCLE_FILE"
+    rm -f "$POMODORO_PROGRESS_FILE"
 
     echo "Pomodoro stopped"
+    exit 0
 }
 
 pomodoro_status() {
@@ -108,9 +119,21 @@ pomodoro_timer_loop() {
     local mode="$2"
     local total_seconds="$3"
 
+    if [ "$mode" = "WORK" ] || [ "$mode" = "BREAK" ]; then
+        session_start "POMODORO_$mode" "$total_seconds"
+    fi
+
     local current=0
 
     while [ "$current" -lt "$total_seconds" ]; do
+
+        while [ "$SESSION_PAUSED" = true ]; do
+            read -rsn1 -t 1 key
+
+            if [ "$key" = "1" ]; then
+                SESSION_PAUSED=false
+            fi
+        done
         local remaining=$((total_seconds - current))
         local percent=$((current * 100 / total_seconds))
 
@@ -120,13 +143,43 @@ pomodoro_timer_loop() {
             "$percent" \
             "$remaining"
 
-        pomodoro_print_progress \
-            "$cycle" \
-            "$mode" \
-            "$percent" \
-            "$remaining"
+        clear
+        echo "Pomodoro"
+        echo
+        echo "Cycle: ${cycle}/${pomodoro_cycles}"
+        echo "Mode: ${mode}"
+        echo "Time: $(pomodoro_format_time "$remaining")"
+        echo "Progress: ${percent}%"
+        echo
+        echo "1 Resume  2 Pause  3 Reset  4 Exit  5 Save"
 
-        sleep 1
+        read -rsn1 -t 1 key
+
+
+        case "$key" in
+            1)
+                SESSION_PAUSED=false
+                ;;
+
+            2)
+                SESSION_PAUSED=true
+                ;;
+
+            3)
+                session_reset
+                echo "Pomodoro reset"
+                exit 0
+                ;;
+
+            4)
+                pomodoro_stop
+                ;;
+
+            5)
+                session_save
+                exit 0
+                ;;
+        esac
 
         current=$((current + 1))
     done
@@ -136,30 +189,10 @@ pomodoro_timer_loop() {
         "$mode" \
         "100" \
         "0"
-}
 
-pomodoro_print_progress() {
-    local cycle="$1"
-    local mode="$2"
-    local percent="$3"
-    local remaining="$4"
-
-    clear
-
-    echo "Pomodoro Progress"
-    echo
-    echo "Total Cycles: ${pomodoro_cycles}"
-    echo "Current Cycle: ${cycle}/${pomodoro_cycles}"
-    echo
-    echo "Mode: ${mode}"
-    echo
-    echo -n "Current: "
-    pomodoro_progress_bar "$percent"
-    echo
-
-    pomodoro_session_progress_bar "$((cycle - 1))" "$pomodoro_cycles"
-
-    echo "Remaining: $(pomodoro_format_time "$remaining")"
+    if [ "$mode" = "WORK" ] || [ "$mode" = "BREAK" ]; then
+        session_finish "$total_seconds"
+    fi
 }
 
 pomodoro_format_time() {
@@ -196,4 +229,12 @@ pomodoro_session_progress_bar() {
     pomodoro_progress_bar "$percent"
     echo
     echo "Completed: ${completed}/${total}"
+}
+
+pomodoro_reset() {
+    rm -f "$POMODORO_STATE_FILE"
+    rm -f "$POMODORO_CYCLE_FILE"
+    rm -f "$POMODORO_PROGRESS_FILE"
+
+    echo "Pomodoro reset"
 }

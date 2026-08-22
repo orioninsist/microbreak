@@ -32,8 +32,17 @@ show_help() {
     echo "  microbreak config"
     echo "  microbreak test"
     echo "  microbreak focus start"
+    echo "  microbreak focus stop"
+    echo "  microbreak focus status"
     echo "  microbreak pomodoro start"
+    echo "  microbreak pomodoro stop"
+    echo "  microbreak pomodoro status"
+    echo "  microbreak pomodoro reset"
     echo "  microbreak screen-rest"
+    echo "  microbreak stats"
+    echo "  microbreak stats today"
+    echo "  microbreak stats week"
+    echo "  microbreak stats month MM YYYY"
     echo "  microbreak usage"
     echo "  microbreak usage today 10"
     echo "  microbreak usage week 20"
@@ -65,8 +74,12 @@ if [[ "$1" == "--version" ]]; then
     exit 0
 fi
 
+if [ -z "$1" ]; then
+    show_help
+    exit 0
+fi
+
 COMMAND="$1"
-SUBCOMMAND="$2"
 SUBCOMMAND="$2"
 
 case "$COMMAND" in
@@ -123,14 +136,45 @@ case "$COMMAND" in
             status)
                 pomodoro_status
                 ;;
+            reset)
+                pomodoro_reset
+                ;;
             *)
                 echo "Usage:"
                 echo "  microbreak pomodoro start"
                 echo "  microbreak pomodoro stop"
                 echo "  microbreak pomodoro status"
+    echo "  microbreak pomodoro reset"
                 ;;
         esac
         ;;
+
+    stats)
+        case "$SUBCOMMAND" in
+            today)
+                echo "MICROBREAK STATISTICS"
+                echo
+                echo "Period: Today"
+                statistics_daily
+                ;;
+            week)
+                echo "MICROBREAK STATISTICS"
+                echo
+                echo "Period: Week"
+                statistics_weekly
+                ;;
+            month)
+                echo "MICROBREAK STATISTICS"
+                echo
+                echo "Period: ${3} ${4}"
+                statistics_monthly "$3" "$4"
+                ;;
+            *)
+                statistics_daily
+                ;;
+        esac
+        ;;
+
     screen-rest)
         if [ "$screen_rest" = true ]; then
             screen_rest_start
@@ -151,15 +195,8 @@ case "$COMMAND" in
         "$BASE_DIR/tests/feature_test.sh"
         ;;
     *)
-        echo "Usage:"
-        echo "  microbreak start"
-        echo "  microbreak stop"
-        echo "  microbreak restart"
-        echo "  microbreak status"
-        echo "  microbreak enable"
-        echo "  microbreak disable"
-        echo "  microbreak daemon"
-        echo "  microbreak config"
-        echo "  microbreak test"
+        echo "Unknown command: $COMMAND"
+        echo "Use: microbreak --help"
+        exit 1
         ;;
 esac

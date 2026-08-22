@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 
-FOCUS_STATE_FILE="/tmp/microbreak_focus.state"
+source "$(dirname "${BASH_SOURCE[0]}")/../core/paths.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../core/window_tracker.sh"
 
 source "$(dirname "${BASH_SOURCE[0]}")/statistics.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/notification.sh"
 
 source "$(dirname "${BASH_SOURCE[0]}")/../core/break_trigger.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../core/config_loader.sh"
+load_config
 
 focus_start() {
     echo "active" > "$FOCUS_STATE_FILE"
@@ -71,6 +74,44 @@ focus_timer_loop() {
         local percent=$((current * 100 / total_seconds))
 
         focus_progress "$percent" "$remaining"
+
+        echo
+        echo "1 Resume  2 Pause  3 Reset  4 Exit  5 Save"
+
+        read -rsn1 -t 1 key
+
+        case "$key" in
+            1)
+                FOCUS_PAUSED=false
+                ;;
+
+            2)
+                FOCUS_PAUSED=true
+                ;;
+
+            3)
+                echo "Focus reset"
+                exit 0
+                ;;
+
+            4)
+                focus_stop
+                exit 0
+                ;;
+
+            5)
+                echo "Focus saved"
+                exit 0
+                ;;
+        esac
+
+        while [ "$FOCUS_PAUSED" = true ]; do
+            read -rsn1 -t 1 key
+
+            if [ "$key" = "1" ]; then
+                FOCUS_PAUSED=false
+            fi
+        done
 
         sleep 1
 
