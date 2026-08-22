@@ -37,6 +37,8 @@ pomodoro_run() {
 
         echo "$cycle" > "$POMODORO_CYCLE_FILE"
 
+        pomodoro_session_progress_bar "$cycle" "$pomodoro_cycles"
+
         cycle=$((cycle + 1))
     done
 
@@ -155,7 +157,7 @@ pomodoro_print_progress() {
     pomodoro_progress_bar "$percent"
     echo
 
-    pomodoro_session_progress_bar "$cycle" "$pomodoro_cycles"
+    pomodoro_session_progress_bar "$((cycle - 1))" "$pomodoro_cycles"
 
     echo "Remaining: $(pomodoro_format_time "$remaining")"
 }
@@ -185,13 +187,13 @@ pomodoro_progress_bar() {
 }
 
 pomodoro_session_progress_bar() {
-    local cycle="$1"
+    local completed="$1"
     local total="$2"
 
-    local percent=$((cycle * 100 / total))
+    local percent=$((completed * 100 / total))
 
     echo -n "Session: "
     pomodoro_progress_bar "$percent"
     echo
-    echo "Completed: ${cycle}/${total}"
+    echo "Completed: ${completed}/${total}"
 }
