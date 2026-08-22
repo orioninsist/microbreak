@@ -807,6 +807,80 @@ Show complete application usage history.
 
 ---
 
+## Live Progress System
+
+Microbreak provides live terminal progress displays for Focus and Pomodoro modes.
+
+### Focus Mode
+
+Run:
+
+```bash
+microbreak focus start
+````
+
+Shows:
+
+* Live focus progress
+* Current completion percentage
+* Remaining time
+* Automatic completion notification
+* Automatic microbreak trigger
+
+Example:
+
+```text
+Focus Progress
+
+Mode: FOCUS
+
+Current: [##########----------] 50%
+
+Remaining: 12m 30s
+```
+
+### Pomodoro Mode
+
+Run:
+
+```bash
+microbreak pomodoro start
+```
+
+Shows:
+
+* Current Pomodoro cycle
+* Work and break state
+* Current cycle progress
+* Total session progress
+* Remaining time
+
+Example:
+
+```text
+Pomodoro Progress
+
+Total Cycles: 4
+Current Cycle: 1/4
+
+Mode: WORK
+
+Current: [##########----------] 50%
+
+Session: [#####---------------] 25%
+Completed: 1/4
+
+Remaining: 12m 30s
+```
+
+The progress display runs directly in the terminal and updates continuously until the session is completed.
+
+
+
+
+
+---
+
 ## License
 
 MIT License
