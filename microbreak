@@ -14,6 +14,50 @@ source "$BASE_DIR/features/screen_rest.sh"
 load_config || exit 1
 statistics_init
 
+
+show_version() {
+    echo "microbreak version 1.0.0"
+}
+
+show_help() {
+    echo "Microbreak Health Reminder"
+    echo
+    echo "Commands:"
+    echo "  microbreak start"
+    echo "  microbreak stop"
+    echo "  microbreak restart"
+    echo "  microbreak status"
+    echo "  microbreak daemon"
+    echo "  microbreak config"
+    echo "  microbreak test"
+    echo "  microbreak focus start"
+    echo "  microbreak pomodoro start"
+    echo "  microbreak screen-rest"
+    echo
+    echo "Features:"
+    echo "  Focus Mode: $focus_mode"
+    echo "  Pomodoro Mode: $pomodoro_mode"
+    echo "  Screen Rest: $screen_rest"
+    echo "  Statistics: $statistics"
+    echo
+    echo "System:"
+    echo "  Shell: $SHELL"
+    echo "  Desktop: ${XDG_CURRENT_DESKTOP:-unknown}"
+    echo "  Session: ${XDG_SESSION_TYPE:-unknown}"
+    echo "  Kernel: $(uname -s)"
+    echo "  Architecture: $(uname -m)"
+}
+
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    show_help
+    exit 0
+fi
+
+if [[ "$1" == "--version" ]]; then
+    show_version
+    exit 0
+fi
+
 COMMAND="$1"
 SUBCOMMAND="$2"
 SUBCOMMAND="$2"
