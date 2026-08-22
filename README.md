@@ -734,11 +734,11 @@ Automatic screen breaks
 |
 v
 Daily statistics saved
-
+```
  
  
 
----
+
 
 ## License
 
