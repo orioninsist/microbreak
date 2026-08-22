@@ -1,0 +1,11 @@
+[Unit]
+Description=Microbreak Health Reminder Service
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/mnt/local/areas/microbreak/microbreak daemon
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

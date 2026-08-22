@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+
+BASE_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
+
+source "$BASE_DIR/core/config_loader.sh"
+source "$BASE_DIR/core/timer.sh"
+source "$BASE_DIR/core/daemon.sh"
+source "$BASE_DIR/features/focus.sh"
+source "$BASE_DIR/features/pomodoro.sh"
+source "$BASE_DIR/features/voice.sh"
+source "$BASE_DIR/features/statistics.sh"
+source "$BASE_DIR/features/screen_rest.sh"
+
+load_config || exit 1
+statistics_init
+
+COMMAND="$1"
+SUBCOMMAND="$2"
+SUBCOMMAND="$2"
+
+case "$COMMAND" in
+    start)
+        systemctl --user start microbreak.service
+        ;;
+    stop)
+        systemctl --user stop microbreak.service
+        ;;
+    restart)
+        systemctl --user restart microbreak.service
+        ;;
+    status)
+        systemctl --user status microbreak.service
+        ;;
+    enable)
+        systemctl --user enable microbreak.service
+        ;;
+    disable)
+        systemctl --user disable microbreak.service
+        ;;
+    daemon)
+        run_daemon
+        ;;
+
+    focus)
+        case "$SUBCOMMAND" in
+            start)
+                focus_start
+                ;;
+            stop)
+                focus_stop
+                ;;
+            status)
+                focus_status
+                ;;
+            *)
+                echo "Usage:"
+                echo "  microbreak focus start"
+                echo "  microbreak focus stop"
+                echo "  microbreak focus status"
+                ;;
+        esac
+        ;;
+
+    pomodoro)
+        case "$SUBCOMMAND" in
+            start)
+                pomodoro_start
+                ;;
+            stop)
+                pomodoro_stop
+                ;;
+            status)
+                pomodoro_status
+                ;;
+            *)
+                echo "Usage:"
+                echo "  microbreak pomodoro start"
+                echo "  microbreak pomodoro stop"
+                echo "  microbreak pomodoro status"
+                ;;
+        esac
+        ;;
+    screen-rest)
+        if [ "$screen_rest" = true ]; then
+            screen_rest_start
+        else
+            echo "Screen Rest disabled"
+        fi
+        ;;
+
+    config)
+        cat "$BASE_DIR/config/microbreak.conf"
+        ;;
+    test)
+        "$BASE_DIR/tests/config_test.sh"
+        "$BASE_DIR/tests/timer_test.sh"
+        "$BASE_DIR/tests/feature_test.sh"
+        ;;
+    *)
+        echo "Usage:"
+        echo "  microbreak start"
+        echo "  microbreak stop"
+        echo "  microbreak restart"
+        echo "  microbreak status"
+        echo "  microbreak enable"
+        echo "  microbreak disable"
+        echo "  microbreak daemon"
+        echo "  microbreak config"
+        echo "  microbreak test"
+        ;;
+esac
