@@ -16,8 +16,7 @@ pomodoro_start() {
     echo "Pomodoro started"
     echo "Cycles: ${pomodoro_cycles}"
 
-    pomodoro_run &
-    echo $! > "$POMODORO_PID_FILE"
+    pomodoro_run
 }
 
 pomodoro_run() {
@@ -119,6 +118,12 @@ pomodoro_timer_loop() {
             "$percent" \
             "$remaining"
 
+        pomodoro_print_progress \
+            "$cycle" \
+            "$mode" \
+            "$percent" \
+            "$remaining"
+
         sleep 1
 
         current=$((current + 1))
@@ -129,4 +134,64 @@ pomodoro_timer_loop() {
         "$mode" \
         "100" \
         "0"
+}
+
+pomodoro_print_progress() {
+    local cycle="$1"
+    local mode="$2"
+    local percent="$3"
+    local remaining="$4"
+
+    clear
+
+    echo "Pomodoro Progress"
+    echo
+    echo "Total Cycles: ${pomodoro_cycles}"
+    echo "Current Cycle: ${cycle}/${pomodoro_cycles}"
+    echo
+    echo "Mode: ${mode}"
+    echo
+    echo -n "Current: "
+    pomodoro_progress_bar "$percent"
+    echo
+
+    pomodoro_session_progress_bar "$cycle" "$pomodoro_cycles"
+
+    echo "Remaining: $(pomodoro_format_time "$remaining")"
+}
+
+pomodoro_format_time() {
+    local seconds="$1"
+
+    local minutes=$((seconds / 60))
+    local secs=$((seconds % 60))
+
+    printf "%02dm %02ds" "$minutes" "$secs"
+}
+
+pomodoro_progress_bar() {
+    local percent="$1"
+    local width=20
+
+    local filled=$((percent * width / 100))
+    local empty=$((width - filled))
+
+    printf "["
+
+    printf "%${filled}s" | tr " " "#"
+    printf "%${empty}s" | tr " " "-"
+
+    printf "] %s%%" "$percent"
+}
+
+pomodoro_session_progress_bar() {
+    local cycle="$1"
+    local total="$2"
+
+    local percent=$((cycle * 100 / total))
+
+    echo -n "Session: "
+    pomodoro_progress_bar "$percent"
+    echo
+    echo "Completed: ${cycle}/${total}"
 }
