@@ -10,6 +10,7 @@ source "$BASE_DIR/features/pomodoro.sh"
 source "$BASE_DIR/features/voice.sh"
 source "$BASE_DIR/features/statistics.sh"
 source "$BASE_DIR/features/screen_rest.sh"
+source "$BASE_DIR/features/usage_tracker.sh"
 
 load_config || exit 1
 statistics_init
@@ -33,12 +34,18 @@ show_help() {
     echo "  microbreak focus start"
     echo "  microbreak pomodoro start"
     echo "  microbreak screen-rest"
+    echo "  microbreak usage"
+    echo "  microbreak usage today 10"
+    echo "  microbreak usage week 20"
+    echo "  microbreak usage month 50"
+    echo "  microbreak usage all all"
     echo
     echo "Features:"
     echo "  Focus Mode: $focus_mode"
     echo "  Pomodoro Mode: $pomodoro_mode"
     echo "  Screen Rest: $screen_rest"
     echo "  Statistics: $statistics"
+    echo "  Usage Tracker: true"
     echo
     echo "System:"
     echo "  Shell: $SHELL"
@@ -132,6 +139,9 @@ case "$COMMAND" in
         fi
         ;;
 
+    usage)
+        usage_report "${SUBCOMMAND:-today}" "${3:-10}"
+        ;;
     config)
         cat "$BASE_DIR/config/microbreak.conf"
         ;;
