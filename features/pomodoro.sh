@@ -3,6 +3,7 @@
 POMODORO_STATE_FILE="/tmp/microbreak_pomodoro.state"
 POMODORO_CYCLE_FILE="/tmp/microbreak_pomodoro.cycle"
 POMODORO_PID_FILE="/tmp/microbreak_pomodoro.pid"
+POMODORO_PROGRESS_FILE="/tmp/microbreak_pomodoro.progress"
 
 source "$(dirname "${BASH_SOURCE[0]}")/voice.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/statistics.sh"
@@ -25,13 +26,13 @@ pomodoro_run() {
     while [ "$cycle" -le "$pomodoro_cycles" ]; do
         echo "Work cycle: $cycle"
 
-        sleep "$(pomodoro_get_work_seconds)"
+        pomodoro_timer_loop "$cycle" "WORK" "$(pomodoro_get_work_seconds)"
 
         voice_say "Work session finished"
 
         echo "Break cycle: $cycle"
 
-        sleep "$(pomodoro_get_break_seconds)"
+        pomodoro_timer_loop "$cycle" "BREAK" "$(pomodoro_get_break_seconds)"
 
         voice_say "Break finished"
 
@@ -83,4 +84,49 @@ pomodoro_get_work_seconds() {
 
 pomodoro_get_break_seconds() {
     echo $((pomodoro_break_duration * 60))
+}
+
+pomodoro_update_progress() {
+    local cycle="$1"
+    local mode="$2"
+    local percent="$3"
+    local remaining="$4"
+
+    cat > "$POMODORO_PROGRESS_FILE" <<EOP
+Pomodoro Progress
+
+Cycle: ${cycle}/${pomodoro_cycles}
+Mode: ${mode}
+Progress: ${percent}%
+Remaining: ${remaining}s
+EOP
+}
+
+pomodoro_timer_loop() {
+    local cycle="$1"
+    local mode="$2"
+    local total_seconds="$3"
+
+    local current=0
+
+    while [ "$current" -lt "$total_seconds" ]; do
+        local remaining=$((total_seconds - current))
+        local percent=$((current * 100 / total_seconds))
+
+        pomodoro_update_progress \
+            "$cycle" \
+            "$mode" \
+            "$percent" \
+            "$remaining"
+
+        sleep 1
+
+        current=$((current + 1))
+    done
+
+    pomodoro_update_progress \
+        "$cycle" \
+        "$mode" \
+        "100" \
+        "0"
 }
