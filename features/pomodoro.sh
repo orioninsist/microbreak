@@ -2,6 +2,7 @@
 
 POMODORO_STATE_FILE="/tmp/microbreak_pomodoro.state"
 POMODORO_CYCLE_FILE="/tmp/microbreak_pomodoro.cycle"
+POMODORO_PID_FILE="/tmp/microbreak_pomodoro.pid"
 
 source "$(dirname "${BASH_SOURCE[0]}")/voice.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/statistics.sh"
@@ -14,7 +15,8 @@ pomodoro_start() {
     echo "Pomodoro started"
     echo "Cycles: ${pomodoro_cycles}"
 
-    pomodoro_run
+    pomodoro_run &
+    echo $! > "$POMODORO_PID_FILE"
 }
 
 pomodoro_run() {
@@ -23,13 +25,13 @@ pomodoro_run() {
     while [ "$cycle" -le "$pomodoro_cycles" ]; do
         echo "Work cycle: $cycle"
 
-        sleep "$pomodoro_work_duration"
+        sleep "$(pomodoro_get_work_seconds)"
 
         voice_say "Work session finished"
 
         echo "Break cycle: $cycle"
 
-        sleep "$pomodoro_break_duration"
+        sleep "$(pomodoro_get_break_seconds)"
 
         voice_say "Break finished"
 
@@ -46,6 +48,17 @@ pomodoro_run() {
 }
 
 pomodoro_stop() {
+    if [ -f "$POMODORO_PID_FILE" ]; then
+        local pid
+        pid="$(cat "$POMODORO_PID_FILE")"
+
+        if kill -0 "$pid" 2>/dev/null; then
+            kill "$pid"
+        fi
+
+        rm -f "$POMODORO_PID_FILE"
+    fi
+
     rm -f "$POMODORO_STATE_FILE"
     rm -f "$POMODORO_CYCLE_FILE"
 
@@ -62,4 +75,12 @@ pomodoro_status() {
     else
         echo "Pomodoro inactive"
     fi
+}
+
+pomodoro_get_work_seconds() {
+    echo $((pomodoro_work_duration * 60))
+}
+
+pomodoro_get_break_seconds() {
+    echo $((pomodoro_break_duration * 60))
 }
