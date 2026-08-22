@@ -52,6 +52,8 @@ focus_progress() {
     echo
     echo "Mode: FOCUS"
     echo
+    echo "Session Duration: $(pomodoro_format_time "$(focus_get_seconds)")"
+    echo
     echo -n "Current: "
     pomodoro_progress_bar "$percent"
     echo
