@@ -20,34 +20,41 @@ Features:
 - Desktop notifications
 - Statistics tracking
 
----
 
-### Pomodoro Mode
+### Focus Mode
 
-A complete Pomodoro workflow.
+Focus mode provides a dedicated work timer session.
 
 Features:
 
-- Work sessions
-- Break sessions
-- Multiple cycles
-- Voice announcements
-- Desktop notifications
-- Cycle statistics
+- Configurable focus duration
+- Direct terminal-based progress display
+- Pause, resume, reset, save, and exit controls
+- Session statistics tracking
+- Uses the main configuration file (`microbreak.conf`)
 
-Example:
+Focus mode is a manual productivity session. It does not monitor keyboard activity, mouse activity, or active applications.
 
-```
 
-25 minutes work
-|
-v
-5 minutes break
-|
-v
-Repeat 4 cycles
+---
 
-```
+### Pomodoro
+
+Start:
+
+    microbreak pomodoro start
+
+Status:
+
+    microbreak pomodoro status
+
+Stop:
+
+    microbreak pomodoro stop
+
+Reset:
+
+    microbreak pomodoro reset
 
 ---
 
@@ -355,6 +362,12 @@ Stop:
 
 ```bash
 microbreak pomodoro stop
+```
+
+Reset:
+
+```bash
+microbreak pomodoro reset
 ```
 
 ---
