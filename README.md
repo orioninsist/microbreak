@@ -736,9 +736,76 @@ v
 Daily statistics saved
 ```
  
- 
+---
 
+## Application Usage Tracker
 
+Microbreak includes an automatic application usage tracking system.
+
+The tracker monitors open Sway windows and records how long each application remains open.
+
+It does not track focus, keyboard, mouse activity, or user interaction.
+
+Tracking rule:
+
+```
+
+Window open     → Usage time increases
+Window closed   → Usage time stops
+
+```
+
+Example:
+
+```
+
+VS Code opened
+|
+v
+Code usage time increases
+
+VS Code closed
+|
+v
+Code usage time stops
+
+````
+
+Features:
+
+- Tracks open applications automatically
+- Stores permanent usage history
+- Supports daily, weekly, monthly, and all-time reports
+- Provides top application usage statistics
+- Keeps data locally inside the user state directory
+
+Usage examples:
+
+```bash
+microbreak usage
+````
+
+Show today's top applications.
+
+```bash
+microbreak usage week 20
+```
+
+Show the top 20 applications from the last 7 days.
+
+```bash
+microbreak usage month 50
+```
+
+Show the top 50 applications for the current month.
+
+```bash
+microbreak usage all all
+```
+
+Show complete application usage history.
+
+---
 
 ## License
 
