@@ -2,6 +2,7 @@
 
 source "$(dirname "${BASH_SOURCE[0]}")/../core/paths.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/../core/window_tracker.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../core/display.sh"
 
 source "$(dirname "${BASH_SOURCE[0]}")/statistics.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/notification.sh"
@@ -11,6 +12,8 @@ source "$(dirname "${BASH_SOURCE[0]}")/../core/config_loader.sh"
 load_config
 
 focus_start() {
+    display_init
+
     echo "active" > "$FOCUS_STATE_FILE"
 
     echo "Focus started"
@@ -45,25 +48,6 @@ focus_get_seconds() {
     echo $((focus_duration * 60))
 }
 
-focus_progress() {
-    local percent="$1"
-    local remaining="$2"
-
-    clear
-
-    echo "Focus Progress"
-    echo
-    echo "Mode: FOCUS"
-    echo
-    echo "Session Duration: $(pomodoro_format_time "$(focus_get_seconds)")"
-    echo
-    echo -n "Current: "
-    pomodoro_progress_bar "$percent"
-    echo
-    echo
-    echo "Remaining: $(pomodoro_format_time "$remaining")"
-}
-
 focus_timer_loop() {
     local total_seconds="$1"
 
@@ -73,10 +57,12 @@ focus_timer_loop() {
         local remaining=$((total_seconds - current))
         local percent=$((current * 100 / total_seconds))
 
-        focus_progress "$percent" "$remaining"
-
-        echo
-        echo "1 Resume  2 Pause  3 Reset  4 Exit  5 Save"
+        display_session \
+            "FOCUS" \
+            "-" \
+            "FOCUS" \
+            "$(pomodoro_format_time "$remaining")" \
+            "$percent"
 
         read -rsn1 -t 1 key
 
@@ -90,16 +76,19 @@ focus_timer_loop() {
                 ;;
 
             3)
+                display_exit
                 echo "Focus reset"
                 exit 0
                 ;;
 
             4)
+                display_exit
                 focus_stop
                 exit 0
                 ;;
 
             5)
+                display_exit
                 echo "Focus saved"
                 exit 0
                 ;;
@@ -118,5 +107,10 @@ focus_timer_loop() {
         current=$((current + 1))
     done
 
-    focus_progress "100" "0"
+    display_session \
+        "FOCUS" \
+        "-" \
+        "FOCUS" \
+        "00m 00s" \
+        "100"
 }

@@ -7,17 +7,16 @@ source "$(dirname "${BASH_SOURCE[0]}")/voice.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/statistics.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/notification.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/../core/session_tracker.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../core/display.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/../core/config_loader.sh"
 load_config
 
 pomodoro_start() {
     trap pomodoro_stop INT TERM
+    display_init
 
     echo "active" > "$POMODORO_STATE_FILE"
     echo "0" > "$POMODORO_CYCLE_FILE"
-
-    echo "Pomodoro started"
-    echo "Cycles: ${pomodoro_cycles}"
 
     pomodoro_run
 }
@@ -29,8 +28,6 @@ pomodoro_run() {
     export POMODORO_COMPLETED=0
 
     while [ "$cycle" -le "$pomodoro_cycles" ]; do
-        echo "Work cycle: $cycle"
-
         pomodoro_timer_loop "$cycle" "WORK" "$(pomodoro_get_work_seconds)"
 
         voice_say "Work session finished"
@@ -98,22 +95,6 @@ pomodoro_get_break_seconds() {
     echo $((pomodoro_break_duration * 60))
 }
 
-pomodoro_update_progress() {
-    local cycle="$1"
-    local mode="$2"
-    local percent="$3"
-    local remaining="$4"
-
-    cat > "$POMODORO_PROGRESS_FILE" <<EOP
-Pomodoro Progress
-
-Cycle: ${cycle}/${pomodoro_cycles}
-Mode: ${mode}
-Progress: ${percent}%
-Remaining: ${remaining}s
-EOP
-}
-
 pomodoro_timer_loop() {
     local cycle="$1"
     local mode="$2"
@@ -137,21 +118,12 @@ pomodoro_timer_loop() {
         local remaining=$((total_seconds - current))
         local percent=$((current * 100 / total_seconds))
 
-        pomodoro_update_progress \
-            "$cycle" \
+        display_session \
+            "POMODORO" \
+            "${cycle}/${pomodoro_cycles}" \
             "$mode" \
-            "$percent" \
-            "$remaining"
-
-        clear
-        echo "Pomodoro"
-        echo
-        echo "Cycle: ${cycle}/${pomodoro_cycles}"
-        echo "Mode: ${mode}"
-        echo "Time: $(pomodoro_format_time "$remaining")"
-        echo "Progress: ${percent}%"
-        echo
-        echo "1 Resume  2 Pause  3 Reset  4 Exit  5 Save"
+            "$(pomodoro_format_time "$remaining")" \
+            "$percent"
 
         read -rsn1 -t 1 key
 
@@ -186,11 +158,6 @@ pomodoro_timer_loop() {
         current=$((current + 1))
     done
 
-    pomodoro_update_progress \
-        "$cycle" \
-        "$mode" \
-        "100" \
-        "0"
 
     if [ "$mode" = "WORK" ] || [ "$mode" = "BREAK" ]; then
         session_finish "$total_seconds"
