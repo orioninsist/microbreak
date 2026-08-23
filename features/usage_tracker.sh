@@ -2,6 +2,8 @@
 
 USAGE_DB="$HOME/.local/state/microbreak/usage.db"
 
+source "$(dirname "${BASH_SOURCE[0]}")/../core/mouse_tracker.sh"
+
 usage_tracker_init() {
     mkdir -p "$(dirname "$USAGE_DB")"
 
@@ -10,10 +12,13 @@ usage_tracker_init() {
     fi
 }
 
-usage_get_open_apps() {
+usage_get_focused_app() {
+    command -v swaymsg >/dev/null 2>&1 || return
+    command -v jq >/dev/null 2>&1 || return
+
     swaymsg -t get_tree |
-        jq -r '.. | objects | select(.app_id != null or .window_properties.class != null) | .app_id // .window_properties.class' |
-        sort -u
+        jq -r '.. | objects | select(.focused == true) | .app_id // .window_properties.class' |
+        head -n 1
 }
 
 usage_record_time() {
@@ -136,10 +141,8 @@ usage_filter_records() {
 usage_track_once() {
     local interval="${1:-10}"
 
-    usage_get_open_apps |
-    while read -r app; do
-        [ -n "$app" ] || continue
+    local app
+    app="$(mouse_get_window_app)"
 
-        usage_record_time "$app" "$interval"
-    done
+    usage_record_time "$app" "$interval"
 }

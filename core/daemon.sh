@@ -13,8 +13,11 @@ run_daemon() {
     source "$(dirname "${BASH_SOURCE[0]}")/../features/voice.sh"
     source "$(dirname "${BASH_SOURCE[0]}")/../features/screen_rest.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/../features/usage_tracker.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/mouse_tracker.sh"
 
     usage_tracker_init
+
+    mouse_tracker_start &
 
     usage_tracker_loop &
 
