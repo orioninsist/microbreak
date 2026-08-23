@@ -21,8 +21,6 @@ Features:
 - Statistics tracking
 
 
-### Focus Mode
-
 Focus mode provides a dedicated work timer session.
 
 Features:
@@ -35,6 +33,13 @@ Features:
 
 Focus mode is a manual productivity session. It does not monitor keyboard activity, mouse activity, or active applications.
 
+Controls:
+
+- Resume
+- Pause
+- Reset
+- Exit
+- Save
 
 ---
 
@@ -55,6 +60,16 @@ Stop:
 Reset:
 
     microbreak pomodoro reset
+
+
+
+Controls:
+
+- Resume
+- Pause
+- Reset
+- Exit
+- Save
 
 ---
 
@@ -887,9 +902,6 @@ Remaining: 12m 30s
 ```
 
 The progress display runs directly in the terminal and updates continuously until the session is completed.
-
-
-
 
 
 ---
