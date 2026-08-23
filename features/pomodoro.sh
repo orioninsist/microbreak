@@ -181,6 +181,8 @@ pomodoro_timer_loop() {
                 ;;
         esac
 
+        SESSION_ACTIVE=$((SESSION_ACTIVE + 1))
+
         current=$((current + 1))
     done
 

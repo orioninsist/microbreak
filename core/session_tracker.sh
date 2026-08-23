@@ -11,6 +11,7 @@ session_start() {
     SESSION_MODE="$1"
     SESSION_TARGET="$2"
     SESSION_START="$(date +%s)"
+    SESSION_ACTIVE=0
 
     sqlite3 "$DB_FILE" <<SQL
 INSERT INTO sessions (
