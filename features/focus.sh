@@ -102,9 +102,11 @@ focus_timer_loop() {
             fi
         done
 
-        sleep 1
+        if window_is_active "$focus_app"; then
+            current=$((current + 1))
+        fi
 
-        current=$((current + 1))
+        sleep 1
     done
 
     display_session \
